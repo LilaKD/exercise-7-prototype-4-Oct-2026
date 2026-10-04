@@ -1,0 +1,730 @@
+<!doctype html>
+<html lang="en-AU">
+<head>
+<meta charset="utf-8">
+<title>emPartner Exercises | Exercise 7 client surface</title>
+<!-- LOCAL BUILD ONLY. In production the shell supplies the fonts; nothing in
+     the exercise layer should load anything from outside.
+
+     Changed 23 September, and the reason matters more than the change. This
+     was a remote link to Google Fonts. It had been failing silently for the
+     whole build, so every screenshot and every measurement taken before this
+     point was in a fallback face, not Inter. `document.fonts.check` reported
+     the font present throughout. The faces are now served beside the page
+     from real Inter and DM Mono files, so the room has the right light in
+     it; they are still local-build-only, and the production shell supplies
+     its own. Inter is the variable axis, so the 650 and 750 weights this
+     page uses render as authored rather than snapping to 700 and 800. -->
+<style id="localFontsBuildOnly">
+@font-face{font-family:'Inter';font-style:normal;font-weight:100 900;font-display:block;
+  src:url('fonts/inter-latin-wght-normal.woff2') format('woff2-variations')}
+@font-face{font-family:'DM Mono';font-style:normal;font-weight:400;font-display:block;
+  src:url('fonts/dm-mono-latin-400-normal.woff2') format('woff2')}
+@font-face{font-family:'DM Mono';font-style:normal;font-weight:500;font-display:block;
+  src:url('fonts/dm-mono-latin-500-normal.woff2') format('woff2')}
+</style>
+
+<!-- LAYER 1 of 3. THE SHELL, STATIC HALF. Verbatim, separate, attributed.
+     Not mine, not edited, not namespaced. Present only because this is a
+     local build and the real shell is not here to supply it. -->
+<style id="shellStaticHalf">
+:root{
+  --brand:#31B0E3; --brand-dark:#1E8FBC; --light-blue:#E6F4FB; --teal:#3FBFBF;
+  --gold:#EFBD19; --gold-light:#FDF4DA; --gold-deep:#7A5C08;
+  --red:#C94246; --green:#0F6E56; --green-bg:#E3F0EC; --navy:#0F2B3C;
+  --stage:#F7F7F7; --paper:#FCFBF7;
+  --white:#FFFFFF; --border:#E8ECEF; --line2:#F1F4F6;
+  --text:#2D3748; --text2:#5F6B7A; --text3:#A0AEC0;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{font-family:'Inter',-apple-system,sans-serif;background:var(--stage);color:var(--text);-webkit-font-smoothing:antialiased;overflow:hidden}
+.mono{font-family:'DM Mono',monospace;font-weight:500;font-variant-numeric:tabular-nums}
+button{font:inherit;cursor:pointer;border:0;background:none;color:inherit}
+.app{height:100vh;display:flex;flex-direction:column}
+.topbar{height:52px;flex:0 0 52px;background:var(--brand);display:flex;align-items:center;padding:0 20px;color:#fff;position:relative;z-index:70}
+.topline{width:1px;height:22px;background:rgba(255,255,255,.34);margin:0 15px}
+.topname{font-size:13px;font-weight:700;line-height:1.15}
+.topname small{display:block;margin-top:2px;font-size:9px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:rgba(255,255,255,.72);font-family:'DM Mono',monospace}
+.acctbar{display:flex;flex-direction:column;align-items:flex-end;line-height:1.25;margin-left:auto;margin-right:8px}
+.acctbn{font-size:12px;font-weight:500;color:#fff}
+.acctbo{font-size:10.5px;color:rgba(255,255,255,.82)}
+.accti{display:flex;align-items:center;justify-content:center;width:26px;height:26px;border-radius:50%;background:rgba(255,255,255,.22);color:#fff;font-size:12px;font-weight:600;border:1px solid rgba(255,255,255,.35)}
+.body{flex:1;min-height:0;display:flex}
+.rail{position:fixed;left:0;top:52px;bottom:0;width:64px;background:var(--white);border-right:1px solid var(--border);display:flex;flex-direction:column;align-items:center;padding:14px 0 0;gap:4px;overflow:hidden;z-index:60}
+.railitem{display:flex;align-items:center;gap:11px;border:0;background:none;padding:0;margin:0 auto;cursor:pointer;height:38px;flex:none}
+.railnum{width:32px;height:32px;border-radius:50%;display:grid;place-items:center;font-family:'DM Mono',monospace;font-size:11.5px;font-weight:500;background:#EEF0F3;color:var(--text2)}
+.railnum.done{background:var(--green-bg);color:var(--green);position:relative}
+.railnum.done::after{content:"\2713";position:absolute;bottom:-2px;right:-5px;width:14px;height:14px;border-radius:50%;background:var(--green);color:#fff;font-size:8px;font-weight:800;display:grid;place-items:center;border:2px solid var(--white)}
+.railnum.current{background:var(--brand);color:#fff;box-shadow:0 2px 8px rgba(49,176,227,.35)}
+.railnum.ahead{background:#FAFBFC;color:var(--text3)}
+.workspace{flex:1;min-width:0;min-height:0;display:flex;flex-direction:column}
+.stagepad{flex:1;min-height:0;max-width:1560px;width:100%;margin:0 auto;padding:clamp(34px,4.5vh,52px) clamp(26px,3.5vw,56px) 18px;display:flex;flex-direction:column;padding-left:max(clamp(26px,3.5vw,56px),272px)}
+.screenhead{display:flex;align-items:flex-end;gap:14px;margin-bottom:clamp(36px,4vh,52px)}
+.headcopy{flex:1;min-width:0}
+.screenhead h1{font-size:clamp(24px,2vw,30px);font-weight:800;letter-spacing:-.028em;color:var(--navy);line-height:1.12}
+.screenhead .sub{font-size:13px;color:var(--text2);margin-top:7px;max-width:780px;line-height:1.55}
+.artefact{background:var(--paper);border:1px solid #E5E0D5;border-radius:15px;box-shadow:0 4px 14px rgba(15,43,60,.05);overflow:hidden;display:flex;flex-direction:column}
+.artstrap{background:var(--brand);color:#fff;padding:7px 20px;font-size:10.5px;font-weight:700;letter-spacing:.13em;text-transform:uppercase}
+.arthead{background:var(--navy);color:#fff;padding:12px 20px 13px}
+.arthead h2{font-size:clamp(20px,1.5vw,24px);font-weight:750;letter-spacing:-.022em}
+.artbody{padding:18px 20px 19px;display:flex;flex-direction:column;gap:15px;flex:1}
+.gsection{padding:2px 4px}
+.gsection + .gsection{border-top:1px solid #ECE7DB;padding-top:15px}
+.gsection .slab{font-size:14px;font-weight:700;color:var(--brand-dark);letter-spacing:-.01em}
+.artnote2{font-size:11px;color:#A39B87;line-height:1.5;border-top:1px solid #ECE7DB;padding-top:11px;margin-top:2px}
+</style>
+
+<!-- LAYER 2 of 3. THE SHELL, RUNTIME HALF. Read, never declared. -->
+<style id="empReachStyle">
+html, body { height:auto; min-height:100%; overflow:visible; }
+.app { height:auto; min-height:100vh; }
+.topbar { position:sticky; top:0; }
+.stagepad { overflow:visible; }
+</style>
+
+<!-- ===================================================================
+     LAYER 3 of 3. THE EXERCISE LAYER. Mine, and the only one I own.
+     Everything prefixed e7-. Nothing here declares the seven shell
+     classes. One column reached by not using `.demo`, rather than by a
+     page state the shell does not know about.
+     =================================================================== -->
+<style id="e7ExerciseLayer">
+.e7-doc{width:100%;max-width:1010px;margin:0 auto}
+.e7-chipbar{padding-bottom:4px}
+.e7-rangewrap{margin-top:9px}
+.e7-gap-s{margin-top:9px}
+.e7-gap-m{margin-top:13px}
+.e7-gap-l{margin-top:14px}
+.e7-channote{padding:0 15px 13px}
+.e7-channote .e7-constraint{margin-top:0}
+.e7-logotype{font-size:15px;font-weight:800;margin-left:9px}
+.e7-logotype sup{font-size:8px}
+
+/* ---- the chips. Exercise 3's pattern, not the old Exercise 7's tabs.
+   The difference is the first one: "On the table" is the default and
+   carries the whole range, so breadth is always what the reader meets.
+   The old version had four chips of detail and no landing place, which
+   is why it could never show range whatever you clicked. ---- */
+.e7-chips{display:flex;gap:7px;flex-wrap:wrap;padding-bottom:3px}
+.e7-chip{font-size:12px;font-weight:650;border-radius:999px;padding:6px 14px;border:1px solid #E5E0D5;color:var(--text2);background:transparent;white-space:nowrap}
+.e7-chip:hover{border-color:#CFE7F3;color:var(--brand-dark)}
+.e7-chip.on{background:var(--light-blue);border-color:transparent;color:var(--brand-dark)}
+/* A layer nobody has reached yet is still a chip: hiding it would hide
+   the range. A layer settled as empty has no chip at all, because on a
+   document of what a firm can offer, "nothing here" only subtracts. */
+.e7-chip.e7-notyet{color:#A39B87;font-style:italic;font-weight:500}
+
+/* ---- the range strip ---- */
+.e7-range{display:flex;flex-direction:column}
+.e7-rangerow{display:grid;grid-template-columns:172px minmax(0,1fr);gap:16px;align-items:baseline;padding:9px 0;border-top:1px solid #ECE7DB}
+.e7-rangerow:first-child{border-top:0;padding-top:2px}
+.e7-rangelab{font-size:12.5px;font-weight:750;color:var(--brand-dark);letter-spacing:-.008em}
+.e7-rangeval{font-size:13.5px;line-height:1.5;color:var(--navy)}
+.e7-rangeval.e7-waiting{color:#A39B87;font-style:italic}
+
+/* Measure is set with the other measures below, in `ch`. It was the one
+   block left in `em`, which is the fault this build's own note names, and
+   it is the block most exposed to it: the largest type on the page, holding
+   a sentence that is different for every firm. CC, 23 September. */
+.e7-prop{font-size:clamp(19px,1.5vw,22px);line-height:1.34;color:var(--navy);font-weight:700;letter-spacing:-.018em}
+.e7-proplab{font-size:10.5px;font-weight:700;letter-spacing:.11em;text-transform:uppercase;color:var(--brand-dark);margin-bottom:7px}
+
+
+/* ---- exchange card: what we have | what we are open to ---- */
+.e7-ex{background:var(--white);border:1px solid #E9E4DA;border-radius:12px;overflow:hidden;margin-top:11px}
+.e7-exhead{padding:9px 15px;border-bottom:1px solid #EFEBE1;display:flex;align-items:baseline;gap:9px;flex-wrap:wrap}
+.e7-exname{font-size:13.5px;font-weight:750;color:var(--navy);letter-spacing:-.012em}
+.e7-exgrid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr)}
+.e7-exhalf{padding:12px 15px 13px;display:flex;flex-direction:column}
+.e7-exhalf + .e7-exhalf{border-left:1px solid #EFEBE1}
+.e7-exlab{font-size:9.5px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:var(--text3);margin-bottom:7px}
+.e7-fact{font-size:12px;color:var(--text2);line-height:1.6;margin-top:3px}
+.e7-fact b{color:var(--navy);font-weight:650}
+.e7-list{list-style:none;margin:0;padding:0}
+.e7-list li{font-size:12.5px;color:var(--navy);line-height:1.5;padding-left:14px;position:relative;margin-top:6px}
+.e7-list li::before{content:"";position:absolute;left:0;top:8px;width:5px;height:5px;border-radius:50%;background:var(--brand)}
+
+/* ---- referrals. ONE estimate, outbound, in bands. The inbound column was
+   dropped on 23 September at Marrow's instruction: the volume question moves
+   to Exercise 3, where a placement can be tested against it, and the figure
+   that stays here is inherited like every other layer on this page. What
+   remains of direction is Exercise 4's description of the relationship as it
+   stands today, which is a fact rather than a projection. ---- */
+.e7-refhead,.e7-ref{display:grid;grid-template-columns:minmax(0,1.3fr) 124px minmax(0,1.6fr);column-gap:22px;row-gap:0}
+.e7-refhead{font-size:9.5px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:var(--text3);padding-bottom:5px}
+.e7-ref{align-items:baseline;padding:12px 0 13px;border-top:1px solid #ECE7DB}
+.e7-refname{font-size:13px;font-weight:700;color:var(--navy)}
+.e7-inherit{font-size:11px;color:#8B8474;line-height:1.5;margin-top:3px}
+.e7-band{font-size:15px;font-weight:600;color:var(--brand-dark);font-family:'DM Mono',monospace;font-variant-numeric:tabular-nums}
+.e7-bandsub{font-size:10px;color:var(--text3);font-weight:400;font-family:'Inter',sans-serif;display:block;margin-top:2px;letter-spacing:0}
+/* "None expected" is a finding, not a blank, and it is the finding this
+   exercise exists to surface. It is set in the ordinary text colour, not
+   greyed, because greying it would read as missing rather than decided. */
+.e7-none{font-size:13px;font-weight:600;color:var(--text2)}
+.e7-refwhy{font-size:11.5px;color:var(--text2);line-height:1.55}
+.e7-unknown{font-size:12px;color:#A39B87;font-style:italic}
+/* An aside belongs to the row above it, so it is a grid item of that row
+   rather than a sibling after it. Previously it sat between two rows and
+   read as belonging to neither. */
+.e7-ref .e7-said,.e7-ref .e7-constraint{grid-column:1/-1}
+.e7-ref .e7-said{margin:11px 0 0}
+.e7-ref .e7-constraint{margin:9px 0 0}
+
+.e7-said{display:flex;gap:11px;margin:8px 0 2px}
+.e7-said .e7-qbar{width:3px;border-radius:2px;background:var(--brand);flex:none}
+.e7-said p{font-size:12.5px;line-height:1.55;color:var(--navy);font-weight:600}
+/* A constraint is the firm setting a boundary on its own offer. Worth as
+   much to a partner as the offer, and rendered as plainly. */
+.e7-constraint{font-size:11.5px;color:var(--text2);line-height:1.55;margin:7px 0 2px;padding-left:11px;border-left:2px solid #EFEBE1}
+.e7-constraint b{font-size:9.5px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:#8B8474;display:block;margin-bottom:2px}
+
+.e7-caveat{font-size:11.5px;color:var(--text2);line-height:1.6;padding-left:11px;border-left:2px solid #EFEBE1}
+.e7-strong{background:var(--light-blue);border-radius:11px;padding:11px 14px;margin-top:11px}
+.e7-stronglab{font-size:9.5px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:var(--brand-dark)}
+.e7-strongp{font-size:13px;color:var(--navy);line-height:1.5;margin-top:4px;font-weight:650}
+.e7-stance{font-size:13px;color:var(--navy);line-height:1.6;margin-top:4px}
+.e7-waitline{font-size:12.5px;color:#A39B87;line-height:1.6;font-style:italic}
+.e7-awaiting{border:1px dashed #DED8C8;border-radius:11px;padding:12px 15px;margin-top:4px}
+.e7-awaitlab{font-size:9.5px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:var(--text3)}
+.e7-awaitp{font-size:12.5px;color:#8B8474;line-height:1.55;margin-top:5px}
+/* TWO TAGS ON ONE CARD, TELLING TWO DIFFERENT KINDS OF FACT, SO THEY DIFFER
+   IN FORM RATHER THAN IN HUE. A state is a filled badge; an attribute is an
+   outline. Light blue was carrying three meanings, and this is the one of
+   the three the colour law actually forbids, because who an asset is for is
+   a category and colour in this family carries state. Taking the fill off it
+   frees the colour without making the two tags look alike, which was the
+   objection to simply neutralising both. */
+.e7-tag{font-size:9.5px;font-weight:800;letter-spacing:.03em;text-transform:uppercase;border-radius:99px;padding:2px 8px;display:inline-block}
+.e7-tag.e7-state{background:#ECE7DB;color:#8B8474}
+.e7-tag.e7-for{border:1px solid #DED8C8;color:#8B8474;padding:1px 8px;font-weight:700}
+.e7-cond{font-size:11.5px;color:var(--text2);line-height:1.55;margin-top:8px;padding-left:11px;border-left:2px solid #EFEBE1}
+.e7-foot{font-size:11px;color:#A39B87;line-height:1.55;border-top:1px solid #ECE7DB;padding-top:12px;margin-top:2px}
+/* RESERVED, deliberately unrendered. The balance line was cut by Lila on
+   23 September and a correction to its wording is outstanding at the
+   Keeper's office. Held rather than deleted so the line arrives once. */
+.e7-balance{font-size:12.5px;color:var(--text2);line-height:1.6;margin-top:13px;padding-left:11px;border-left:2px solid #E5E0D5}
+/* PROVISIONAL WORDING, held pending the Keeper's office settling the
+   canonical vocabulary. The labels below mix kind of evidence ("Recorded
+   actual") with place of capture ("Estimated here"), because the canon does
+   the same and there was no rule to follow. Not renamed here: a third
+   vocabulary would be worse than an inconsistent one.
+   Provenance. A system vocabulary rather than prose, so it is set as
+   metadata: small, spaced, quiet, and always in the same place relative to
+   the fact it belongs to, which lets a reader skip the whole class of them
+   once they have understood what they are. */
+.e7-prov{font-size:9px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:#B3AC9C;display:block;margin-top:3px}
+/* A LABEL IS ANCHORED TO ITS CELL, NOT FLOWED AFTER ITS CONTENT.
+   Marrow, 23 September. A cell holding a figure runs three lines and a cell
+   holding "None expected" runs two, so a label that simply follows the
+   content sits a line higher in one cell than the next and reads as missing
+   rather than as high. Both halves of a card are already the same height,
+   being stretched grid items, so pushing the label to the bottom of each
+   puts every label in a row on one line. It costs nothing now and it is
+   what keeps the row from breaking when full-length labels arrive. */
+.e7-exhalf .e7-prov,.e7-refhead .e7-prov{margin-top:auto;padding-top:9px}
+.e7-refhead span{display:flex;flex-direction:column}
+.e7-refhead .e7-prov{padding-top:5px}
+.e7-intro{font-size:12.5px;color:var(--text2);line-height:1.6;margin-top:4px}
+
+/* ---- MEASURE AND WRAPPING -------------------------------------------
+   Lila, 23 September: a line that runs three quarters of the way and then
+   breaks leaves a bunched right edge and an odd hole. Two causes, so two
+   fixes, and both apply to prose only. No layout container is touched.
+
+   1. Measure. The blocks below were capped in `em`, which is the font's
+      own size and so says nothing about how many words fit. They are now
+      capped in `ch`, which is a character width, at 62 to 68 characters.
+      That is the range a reader's eye tracks without losing the line, and
+      it is also what stops a paragraph running nearly the full container
+      and then dropping two words onto a second line.
+   2. Wrapping. `balance` asks the engine to even the lines of a short
+      block out rather than fill each one greedily. It does not change the
+      words. Its counterpart `pretty`, which only rescues a last line, is
+      not used anywhere here: nothing on this page runs long enough.
+
+   Both rules apply to prose blocks that read as a unit, and to nothing
+   else. A list item is not one: a list wants a ragged right, and evening
+   its lines turns it into a stack of tombstones. Nor is a `label: value`
+   fact. Neither is capped or balanced; both are left to their column.
+   -------------------------------------------------------------------- */
+.e7-prop{max-width:48ch;text-wrap:balance}
+/* No measure here on purpose. The shell already caps the subhead, at 780px
+   and with a two-class selector, so anything the exercise layer writes is
+   either ignored or a fight with the shell. Only the wrapping is set, which
+   the shell does not touch. Checked in the CSSOM rather than in the file:
+   the cap was there, parsed, and losing silently. */
+.e7-sub{text-wrap:balance}
+.e7-intro,.e7-caveat{max-width:66ch;text-wrap:balance}
+.e7-said p,.e7-strongp,.e7-awaitp,.e7-stance{max-width:62ch;text-wrap:balance}
+.e7-rangeval,.e7-refwhy,.e7-about,.e7-constraint,.e7-cond,.e7-waitline,
+.e7-channote .e7-constraint{max-width:64ch;text-wrap:balance}
+
+/* ---- PREVIEW CONTROL. Not part of the product. ---- */
+.e7-preview{position:fixed;left:0;right:0;bottom:0;z-index:200;background:#241F17;color:#EDE6D8;
+  display:flex;align-items:center;gap:10px;padding:9px 16px;font-size:12px;font-family:'DM Mono',monospace;flex-wrap:wrap}
+.e7-preview b{font-weight:500;letter-spacing:.1em;text-transform:uppercase;font-size:10px;color:#A3987F}
+.e7-preview button{border:1px solid #4A4234;border-radius:6px;padding:5px 11px;color:#EDE6D8;font-size:11.5px;font-family:inherit}
+.e7-preview button.on{background:#EDE6D8;color:#241F17;border-color:#EDE6D8}
+.e7-previewnote{margin-left:auto;color:#8A7F6B;font-size:10.5px}
+.e7-capture .e7-preview{position:static}
+</style>
+</head>
+<body>
+
+<div class="app">
+  <div class="topbar">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="#fff" aria-hidden="true"><path d="M11 2a9 9 0 0 0-9 9h9zM13 2v9h9a9 9 0 0 0-9-9zM2 13a9 9 0 0 0 9 9v-9zM13 13v9a9 9 0 0 0 9-9z"/></svg>
+    <span class="e7-logotype">emPartner<sup>™</sup></span>
+    <span class="topline"></span>
+    <span class="topname">Exercise 7<small>Value Exchange</small></span>
+    <span class="acctbar"><span class="acctbn">Erika Vance</span><span class="acctbo">Fairlight Financial</span></span>
+    <span class="accti">EV</span>
+  </div>
+
+  <div class="body">
+    <nav class="rail" aria-label="Exercises">
+      <button class="railitem"><span class="railnum done">P</span></button>
+      <button class="railitem"><span class="railnum done">1</span></button>
+      <button class="railitem"><span class="railnum done">2</span></button>
+      <button class="railitem"><span class="railnum done">3</span></button>
+      <button class="railitem"><span class="railnum done">4</span></button>
+      <button class="railitem"><span class="railnum done">5</span></button>
+      <button class="railitem"><span class="railnum done">6</span></button>
+      <button class="railitem"><span class="railnum current">7</span></button>
+      <button class="railitem"><span class="railnum ahead">8</span></button>
+      <button class="railitem"><span class="railnum ahead">9</span></button>
+    </nav>
+
+    <main class="workspace">
+      <div class="stagepad">
+        <div class="e7-doc">
+          <div class="screenhead"><div class="headcopy">
+            <h1>Value Exchange</h1>
+            <div class="sub e7-sub" id="e7sub"></div>
+          </div></div>
+          <article class="artefact" id="e7art"></article>
+        </div>
+      </div>
+    </main>
+  </div>
+</div>
+
+<div class="e7-preview">
+  <b>Preview</b>
+  <button data-s="0">Nothing heard yet</button>
+  <button data-s="1">Referrals heard</button>
+  <button data-s="2">Three layers in</button>
+  <button data-s="3" class="on">As it would finish</button>
+  <button data-s="4">Finished, no marketing reach</button>
+  <span class="e7-previewnote">Not part of the product. Placeholder content throughout.</span>
+</div>
+
+<script>
+var esc=function(s){return String(s).replace(/[&<>"]/g,function(c){return ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'})[c];});};
+
+/* ---------------------------------------------------------------------
+   PROVENANCE VOCABULARY. EVERY WORD BELOW IS A PLACEHOLDER, INCLUDING THE
+   ONES THAT CAME FROM THE CANON. Marrow, 23 September: the vocabulary and
+   its sources are both in flight, so draw the space rather than the words.
+   That is why they are gathered here instead of written into the markup in
+   thirteen places: the strings are set at a realistic length so the page's
+   density is settled around them now, and when the real vocabulary arrives
+   it is one edit to this object rather than a search through the render.
+   Nothing in the page reads these except to print them.
+   --------------------------------------------------------------------- */
+var PROV = {
+  e3:     'From Exercise 3',
+  e4:     'From Exercise 4',
+  e6:     'From Exercise 6',
+  model:  'Modelled from Exercise 3',
+  actual: 'Recorded actual',
+  here:   'Stated here'
+};
+function prov(k){ return '<span class="e7-prov">'+esc(PROV[k])+'</span>'; }
+
+/* strongest_value. The firm's OWN sentence, captured in this exercise, not
+   a constant supplied by the product. It has to be relationship-level rather
+   than a single trade, or it contradicts the page beneath it, and it has to
+   be specific enough that it could not be any other firm. */
+var STRONGEST_VALUE = 'Business owners approaching a sale or a retirement need more than one kind of '
+  + 'adviser. Fairlight would rather build something with the firms already standing beside them '
+  + 'than trade names with strangers.';
+
+/* `note` is a labelled aside belonging to one row: a condition the firm puts
+   on its own offer, or a reason a partner type is on the list at all. Both
+   are worth as much to a reader as the estimate, and both render plainly. */
+var REFERRALS=[
+  { name:'Accountants', inherit:'Often, both ways', out:'6-10',
+    quality:'A warm introduction, usually with the client already expecting the call.' },
+  { name:'Commercial lawyers', inherit:'Often, both ways', out:'3-5',
+    quality:'A warm introduction at a sale or succession moment.',
+    said:'Could be higher if we got more structured about the handover after a sale completes.',
+    note:['One condition','Not while a client is mid-transaction. Fairlight would introduce afterwards.'] },
+  { name:'Mortgage brokers', inherit:'Sometimes, you refer out', out:'1-2',
+    quality:'An introduction at the point a client is restructuring.' },
+  /* The row that carries the argument of the whole exercise, now that the
+     inbound column is gone. A partner type listed on a page about what
+     Fairlight can offer, where the honest answer on this layer is nothing.
+     It says the thing the mortgage brokers row used to say, from the other
+     end and with more nerve: a relationship can be worth having when the
+     referrals do not carry it. No new mechanism; the data was already here. */
+  { name:'Strategic business coaches', inherit:'Occasionally, both ways', out:'none',
+    quality:'Nothing on this layer. Fairlight rarely has a client who needs a coach.',
+    note:['Why they are on the list','Coaches tend to see a business owner start thinking about a sale before anyone else does. Fairlight would build this one on the other three layers.'] },
+  { name:'Bookkeepers', inherit:'Often, both ways', out:null, quality:null }
+];
+
+/* PLACEHOLDER NAMES. In production these come from the canonical vocabulary,
+   emp_entities where kind is prep.channel, not from a literal list. */
+var CHANNELS=[
+  { name:'Client database',
+    have:[['Size','1,000 to 2,499 contacts'],['Made up of','Mostly active clients'],['Email frequency','Monthly']],
+    open:['A dedicated email to our list','A named mention in our monthly note'],
+    note:'The list is the strongest thing Fairlight has and it is used sparingly, so a partner gets attention rather than noise.' },
+  { name:'Events and webinars',
+    have:[['Frequency','Regularly'],['Formats','Community events, private client sessions']],
+    open:['Inviting them as a guest expert','Promoting a bundled offer'] },
+  { name:'LinkedIn',
+    have:[['Presence','Personal profile and company page'],['Content cadence','Fortnightly'],['Newsletter','Not running']],
+    open:['Featuring them in thought leadership'] }
+];
+
+/* The sentence under "About this" used to be generated from the audience and
+   the state, both of which are already tags on the card above it, so the
+   cash flow card said "for clients" twice and the workshop card said it was
+   no longer running twice. Generating prose out of facts the reader can
+   already see is the fault; the fix is not shorter prose but a sentence that
+   says the thing neither tag can, which is what the asset actually is. */
+var ASSETS=[
+  { name:'Retirement readiness review', state:null, forWhom:'Clients approaching retirement',
+    about:'A structured review a client works through with an adviser in the year before they stop working.',
+    cond:'Fairlight would want to run the first few alongside the partner before they use it on their own.',
+    use:['White labelled for their clients','Run as a joint session','Including partner expertise'] },
+  { name:'Cash flow health check', state:'Under-used', forWhom:'Clients', cond:null,
+    about:'A short diagnostic on where a business owner’s money is going and what it is costing them.',
+    use:['Gifted to a partner’s clients','Co-branded'] },
+  { name:'Business owner wealth workshop', state:'No longer running', forWhom:'Prospects', cond:null,
+    about:'A half day session on getting personal wealth out of a business before it is sold.',
+    use:['The material is available to adapt'] }
+];
+var CONTRIB=['Their tools or frameworks','Their client-facing templates','A named section in their onboarding pack'];
+var BUILD=['A joint diagnostic for business owners approaching a sale'];
+var STRONG='A joint diagnostic with a commercial lawyer, run at the point a client first thinks about selling.';
+var EXCHANGES=['Service credits for a partner','Service credits for a partner’s clients','Additional support or add-ons'];
+
+/* Layers. `state` is one of: 'filled', 'notyet', 'empty'.
+   'notyet'  keeps its chip and says what is coming: hiding it would hide
+             the range, which is the one thing this exercise proves.
+   'empty'   is settled, asked and nothing, and disappears entirely. On a
+             document about what a firm can offer, a row reading "nothing
+             here" only subtracts. The finding still matters, but it
+             matters to the cockpit and to Exercise 9, not to a partner.
+   That distinction cannot be inferred from an absence of rows, so it has
+   to be a recorded fact. */
+function layers(stage){
+  var L=[
+    { id:'ref',  label:'Referrals',            state:'notyet',
+      waiting:'Which partner types Fairlight could send work to, and roughly how much.',
+      filled:'Introductions at the moment a client needs what the partner does. Six to ten a year to an accountant.' },
+    { id:'mkt',  label:'Marketing reach',      state:'notyet',
+      waiting:'The channels Fairlight could put a partner in front of.',
+      filled:'A dedicated email to a thousand active clients, a guest slot at our events, a feature on LinkedIn.' },
+    { id:'val',  label:'Assets and co-creation', state:'notyet',
+      waiting:'What Fairlight already owns that a partner could use, and what the two firms could build.',
+      filled:'A retirement readiness review a partner can white label, and a joint diagnostic worth building.' },
+    { id:'comm', label:'Commercial arrangements', state:'notyet',
+      waiting:'How the two firms would balance things when one sends the other work.',
+      filled:'Paid handovers, service credits, and room to design something else.' }
+  ];
+  if (stage>=1) L[0].state='filled';
+  if (stage>=2){ L[1].state='filled'; L[2].state='filled'; }
+  if (stage>=3) L[3].state='filled';
+  if (stage===4){ L[1].state='empty'; }   /* asked, and there is nothing */
+  return L;
+}
+
+var VIEW='all';
+
+function chips(L, stage){
+  var h='<div class="e7-chips"><button class="e7-chip'+(VIEW==='all'?' on':'')+'" data-v="all">On the table</button>';
+  L.forEach(function(l){
+    if (l.state==='empty') return;                 /* no chip at all */
+    h+='<button class="e7-chip'+(VIEW===l.id?' on':'')+(l.state==='notyet'?' e7-notyet':'')+'" data-v="'+l.id+'">'
+      + esc(l.label.replace(' reach','').replace(' and co-creation','').replace(' arrangements','')) + '</button>';
+  });
+  h+='</div>';
+  return h;
+}
+
+/* ---------------- OVERVIEW: On the table ---------------- */
+function overview(L, stage){
+  var h='';
+  if (stage>=3){
+    h+='<div class="gsection"><div class="e7-proplab">What a partnership with Fairlight is for</div>'
+      +'<div class="e7-prop">'+esc(STRONGEST_VALUE)+'</div></div>';
+  }
+  h+='<div class="gsection"><div class="slab">What is on the table</div><div class="e7-range e7-rangewrap">';
+  L.forEach(function(l){
+    if (l.state==='empty') return;
+    var filled = l.state==='filled';
+    h+='<div class="e7-rangerow"><div class="e7-rangelab">'+esc(l.label)+'</div>'
+      +'<div class="e7-rangeval'+(filled?'':' e7-waiting')+'">'+esc(filled?l.filled:l.waiting)+'</div></div>';
+  });
+  h+='<div class="e7-rangerow"><div class="e7-rangelab">Exclusive offers</div>'
+    +'<div class="e7-rangeval e7-waiting">Comes from Exercise 8, once Fairlight has decided what a partner '
+    +'can hand their own client.</div></div>';
+  h+='</div>';
+  if (stage===0) h+='<div class="artnote2">Nothing has been agreed yet. Each layer appears here once it is confirmed.</div>';
+  h+='</div>';
+
+  return h;
+}
+
+/* ---------------- DETAIL: Referrals ---------------- */
+function refPage(){
+  var h='<div class="gsection"><div class="slab">Referrals</div>'
+    + '<div class="e7-intro">Which partner types Fairlight can send work to, and roughly how much in a normal '
+    + 'year. The figures are bands rather than numbers, because a firm can estimate the shape of its own year '
+    + 'and cannot promise a count of it.</div>';
+  /* PROVENANCE, COLLAPSED DOWN THE COLUMN. Every row in a column shares its
+     source, so the label belongs to the column and prints once. It used to
+     print five times, identical, under each partner name. That is the rule
+     the note called for, found running the other way: I had been looking
+     across a row for two labels side by side and missing five down a column. */
+  h+='<div class="e7-refhead e7-gap-l">'
+    +'<span>Partner type'+prov('e4')+'</span>'
+    +'<span>We can send'+prov('e3')+'</span>'
+    +'<span>What they get'+prov('here')+'</span></div>';
+  REFERRALS.forEach(function(r){
+    h+='<div class="e7-ref"><div><div class="e7-refname">'+esc(r.name)+'</div>'
+      +'<div class="e7-inherit">'+esc(r.inherit)+'</div></div>';
+    h+='<div>'+(r.out===null
+        ? '<span class="e7-unknown">Not yet</span>'
+        : r.out==='none'
+          ? '<span class="e7-none">None expected</span>'
+          : '<span class="e7-band">'+esc(r.out)+'<span class="e7-bandsub">a year</span></span>')
+        +'</div>';
+    h+='<div class="e7-refwhy">'+(r.quality?esc(r.quality)
+        :'<span class="e7-waitline">We have not yet talked about what an introduction here would look like.</span>')+'</div>';
+    /* Inside the row, spanning it, rather than after it: an aside belongs to
+       the row it is about, and between two rows it belongs to neither. */
+    if (r.said) h+='<div class="e7-said"><span class="e7-qbar"></span><p>'+esc(r.said)+'</p></div>';
+    if (r.note) h+='<div class="e7-constraint"><b>'+esc(r.note[0])+'</b>'+esc(r.note[1])+'</div>';
+    h+='</div>';
+  });
+  h+='<div class="e7-caveat e7-gap-m">These are estimates of a normal year, not commitments. Where the answer is '
+    +'none, that is a finding rather than a judgement on the partner: the relationship is simply not built on '
+    +'referrals, and the other three layers are where it would be.</div>';
+  h+='</div>';
+  return h;
+}
+
+/* ---------------- DETAIL: Marketing ---------------- */
+function mktPage(){
+  var h='<div class="gsection"><div class="slab">Marketing reach</div>'
+    +'<div class="e7-intro">What Fairlight can put a partner in front of, and what it is open to doing. '
+    +'Channels Fairlight does not have are not listed.</div>';
+  CHANNELS.forEach(function(c){
+    h+='<div class="e7-ex"><div class="e7-exhead"><span class="e7-exname">'+esc(c.name)+'</span></div><div class="e7-exgrid">'
+      +'<div class="e7-exhalf"><div class="e7-exlab">What we have</div>'
+      +c.have.map(function(f){return '<div class="e7-fact">'+esc(f[0])+': <b>'+esc(f[1])+'</b></div>';}).join('')
+      +prov('actual')
+      +'</div><div class="e7-exhalf"><div class="e7-exlab">What we are open to</div><ul class="e7-list">'
+      +c.open.map(function(o){return '<li>'+esc(o)+'</li>';}).join('')+'</ul>'
+      +''+prov('here')+'</div></div>'
+      +(c.note?'<div class="e7-channote"><div class="e7-constraint"><b>Worth knowing</b>'+esc(c.note)+'</div></div>':'')
+      +'</div>';
+  });
+  h+='</div>';
+  return h;
+}
+
+/* ---------------- DETAIL: Assets ---------------- */
+function valPage(){
+  var h='<div class="gsection"><div class="slab">Assets and co-creation</div>'
+    +'<div class="e7-intro">Material Fairlight already owns, what a partner could do with it, and what the two firms could build.</div>';
+  ASSETS.forEach(function(a){
+    h+='<div class="e7-ex"><div class="e7-exhead"><span class="e7-exname">'+esc(a.name)+'</span>'
+      +(a.state?'<span class="e7-tag e7-state">'+esc(a.state)+'</span>':'')
+      +'<span class="e7-tag e7-for">For '+esc(a.forWhom)+'</span></div><div class="e7-exgrid">'
+      +'<div class="e7-exhalf"><div class="e7-exlab">About this</div>'
+      +'<div class="e7-fact e7-about">'+esc(a.about)+'</div>'
+      +(a.cond?'<div class="e7-cond">'+esc(a.cond)+'</div>':'')
+      +prov('e6')
+      +'</div><div class="e7-exhalf"><div class="e7-exlab">How a partner could use it</div><ul class="e7-list">'
+      +a.use.map(function(u){return '<li>'+esc(u)+'</li>';}).join('')+'</ul>'
+      +''+prov('here')+'</div></div></div>';
+  });
+  h+='<div class="e7-ex"><div class="e7-exhead"><span class="e7-exname">Built together</span></div><div class="e7-exgrid">'
+    +'<div class="e7-exhalf"><div class="e7-exlab">What a partner could contribute</div><ul class="e7-list">'
+    +CONTRIB.map(function(c){return '<li>'+esc(c)+'</li>';}).join('')+'</ul>'
+    +''+prov('model')+'</div>'
+    +'<div class="e7-exhalf"><div class="e7-exlab">What we could build</div><ul class="e7-list">'
+    +BUILD.map(function(c){return '<li>'+esc(c)+'</li>';}).join('')+'</ul>'
+    +''+prov('here')+'</div></div></div>';
+  h+='<div class="e7-strong"><div class="e7-stronglab">The one worth doing first</div>'
+    +'<div class="e7-strongp">'+esc(STRONG)+'</div></div></div>';
+  return h;
+}
+
+/* ---------------- DETAIL: Commercial ---------------- */
+function commPage(){
+  var h='<div class="gsection"><div class="slab">Commercial arrangements</div>'
+    +'<div class="e7-intro">How Fairlight balances contribution when one firm sends the other work.</div>'
+    +'<div class="e7-exlab e7-gap-m">When a partner hands over a client</div>'
+    +'<div class="e7-stance">Fairlight is comfortable paying a referring partner for a few hours of their time so the '
+    +'handover is properly briefed, and would rather do that than leave the partner outside it.</div>'
+    +prov('here');
+  h+='<div class="e7-ex"><div class="e7-exhead"><span class="e7-exname">Other ways we can balance it</span></div>'
+    +'<div class="e7-exgrid"><div class="e7-exhalf"><div class="e7-exlab">Open to</div><ul class="e7-list">'
+    +EXCHANGES.map(function(x){return '<li>'+esc(x)+'</li>';}).join('')
+    +'</ul>'+prov('here')+'</div><div class="e7-exhalf"><div class="e7-exlab">Not at this stage</div>'
+    +'<div class="e7-fact e7-about">Fairlight would rather not enter a revenue share until a partnership has run for a year.</div>'
+    +''+prov('here')+'</div></div></div>';
+  h+='<div class="e7-awaiting e7-gap-l"><div class="e7-awaitlab">Exclusive offers come from Exercise 8</div>'
+    +'<div class="e7-awaitp">Once Fairlight has decided what a partner can hand their own client, it will appear here '
+    +'alongside everything else.</div></div>';
+  h+='</div>';
+  return h;
+}
+
+function notYetPage(l){
+  return '<div class="gsection"><div class="slab">'+esc(l.label)+'</div>'
+    +'<div class="e7-waitline e7-gap-s">'+esc(l.waiting)+'</div>'
+    +'<div class="artnote2 e7-gap-l">This appears here as soon as Fairlight has confirmed it.</div></div>';
+}
+
+/* The subhead belongs to the view, not to the document. It used to claim
+   everything while the screen showed one layer of four. On a detail view it
+   now says which layer this is and how many there are, and the count is
+   worked out at render from the layers that exist rather than written down:
+   a layer settled as empty is not one of four. */
+var SUBS=['Nothing has been confirmed yet. Everything Fairlight agrees to will appear here as we talk.',
+          'Referrals are settled. The other layers are still to come.',
+          'Three layers in. The commercial side is still to come.',
+          'Everything Fairlight Financial could put on the table for a partner.',
+          'Everything Fairlight Financial could put on the table for a partner.'];
+var SUBLAYER={
+  ref: 'What Fairlight can send a partner, and to whom.',
+  mkt: 'Who Fairlight can put a partner in front of.',
+  val: 'What Fairlight already owns, and what the two firms could build.',
+  comm:'How Fairlight balances things when one firm sends the other work.'
+};
+var COUNTWORD=['no','one','two','three','four','five','six'];
+function subhead(L, stage){
+  if (VIEW==='all') return SUBS[stage];
+  /* "One of four" rather than "layer 1 of 4": the chips already say which
+     one is open, and the layers are not steps, so a position would imply an
+     order that is not there. What the line has to do is stop claiming the
+     whole document while showing a part of it. */
+  var live=L.filter(function(l){return l.state!=='empty';});
+  var me=live.filter(function(l){return l.id===VIEW;})[0];
+  var lead='One of '+COUNTWORD[live.length]+' layers';
+  if (me && me.state!=='filled') return lead+', and nothing is confirmed on it yet.';
+  return lead+'. '+SUBLAYER[VIEW];
+}
+
+function build(stage){
+  var L=layers(stage);
+  /* If the view points at a layer that has since been settled empty, fall
+     back to the overview rather than showing a page that should not exist. */
+  var cur=L.filter(function(l){return l.id===VIEW;})[0];
+  if (cur && cur.state==='empty') VIEW='all';
+
+  var h='<div class="artstrap">Value Exchange</div>'
+      + '<div class="arthead"><h2>What Fairlight Financial can offer a partner</h2></div>'
+      + '<div class="artbody">'
+      + '<div class="gsection e7-chipbar">'+chips(L,stage)+'</div>';
+
+  if (VIEW==='all') h+=overview(L,stage);
+  else {
+    var l=L.filter(function(x){return x.id===VIEW;})[0];
+    if (l.state!=='filled') h+=notYetPage(l);
+    else if (VIEW==='ref')  h+=refPage();
+    else if (VIEW==='mkt')  h+=mktPage();
+    else if (VIEW==='val')  h+=valPage();
+    else if (VIEW==='comm') h+=commPage();
+  }
+
+  /* The front page carries no footer at all now. Behind the chips the note
+     stays, because it is functional rather than rhetorical: it tells a reader
+     which of the two things they are looking at. */
+  if (VIEW!=='all')
+    h+='<div class="e7-foot">Fairlight\u2019s own record behind the front page. '
+      +'It feeds the console and the partner portal.</div>';
+  h+='</div>';
+  return h;
+}
+
+/* ---------------------------------------------------------------------
+   SHORT-WORD GLUE. The other half of the ragged right edge, and the half no
+   wrapping rule fixes: a line that ends on "a" and drops the noun onto the
+   next line, as "Six to ten a / year to an accountant" did. Joining a one-
+   or two-letter word to the word after it with a non-breaking space stops
+   the engine from ever breaking between them.
+
+   Run once over the rendered text nodes rather than at the fifteen places
+   prose is assembled, so no render function has to remember it and no
+   stored string is altered: this is presentation, and it happens after the
+   page is built. If production would rather do it upstream, the stored text
+   is untouched and this can be deleted in one piece.
+   --------------------------------------------------------------------- */
+/* The selector list IS the rule. Both typographic rules below apply to prose
+   blocks that read as a unit, and to nothing else. A list item is not one: a
+   list wants a ragged right, and evening its lines turns it into a stack of
+   tombstones. Nor is a `label: value` fact. Marrow, 23 September. */
+var PROSE='.e7-prop,.e7-intro,.e7-caveat,.e7-rangeval,.e7-refwhy,.e7-about,.e7-said p,'
+        + '.e7-constraint,.e7-cond,.e7-stance,.e7-strongp,.e7-awaitp,.e7-waitline';
+
+/* NO LOOKBEHIND. `(?<=...)` is a syntax error where it is unsupported, and a
+   regex literal is parsed with the script rather than run with it, so one
+   unsupported group takes down the whole block and the page renders empty.
+   The capturing form below does the same work and parses everywhere.
+   One pass, deliberately: two would chain "of a thousand" into a single
+   unbreakable run, which is the fault this rule is supposed to prevent. */
+function glueShortWords(els){
+  [].forEach.call(els,function(el){
+    var w=document.createTreeWalker(el,NodeFilter.SHOW_TEXT,null,false), n;
+    while((n=w.nextNode()))
+      n.nodeValue=n.nodeValue.replace(/(^|\s)([A-Za-z]{1,2})\s+/g,'$1$2 ');
+  });
+}
+
+/* WHATEVER IS GLUED TRAVELS. Marrow, 23 September: this page feeds the console
+   and the partner portal, and a reader who copies from it copies the
+   non-breaking spaces too. They are put back to ordinary spaces on the way
+   out, in both flavours the clipboard carries, so what leaves the page is
+   what the page says rather than how it was set. */
+document.addEventListener('copy',function(e){
+  var sel=window.getSelection();
+  if(!sel||sel.isCollapsed||!e.clipboardData) return;
+  var box=document.createElement('div');
+  box.appendChild(sel.getRangeAt(0).cloneContents());
+  e.clipboardData.setData('text/plain',sel.toString().replace(/ /g,' '));
+  e.clipboardData.setData('text/html',box.innerHTML.replace(/ |&nbsp;/g,' '));
+  e.preventDefault();
+});
+
+var STAGE=3;
+function show(){
+  document.getElementById('e7art').innerHTML=build(STAGE);
+  /* After build, not before: build may send VIEW back to the overview when
+     the open layer has been settled empty, and the subhead has to follow
+     where the page actually landed. */
+  var sub=document.getElementById('e7sub');
+  sub.textContent=subhead(layers(STAGE),STAGE);
+  glueShortWords(document.querySelectorAll(PROSE));
+  glueShortWords([sub]);
+  [].forEach.call(document.querySelectorAll('.e7-chip'),function(b){
+    b.onclick=function(){ VIEW=b.dataset.v; show(); };
+  });
+  [].forEach.call(document.querySelectorAll('.e7-preview button'),function(b){
+    b.classList.toggle('on',Number(b.dataset.s)===STAGE);
+    b.onclick=function(){ STAGE=Number(b.dataset.s); VIEW='all'; show(); };
+  });
+}
+show();
+</script>
+</body>
+</html>
